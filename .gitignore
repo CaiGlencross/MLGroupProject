@@ -1,0 +1,4 @@
+#ignore all csvs (because they are huge)
+*.csv
+#ignore all .pyc (because I use good practice)
+*.pyc
