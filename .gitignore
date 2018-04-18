@@ -2,3 +2,5 @@
 *.csv
 #ignore all .pyc (because I use good practice)
 *.pyc
+#ignore .DS_Store
+.DS_Store
