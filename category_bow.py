@@ -41,10 +41,30 @@ def read_in_category_data(csv_filename, threshold=4.5):
 def main():
 	X, y = read_in_category_data("merged_NV_restaurant.csv")
 
+	percentage_min = np.count_nonzero(y == 1) / float(y.size)
+	percentage_maj = 1 - percentage_min
+	min_weight = percentage_maj/percentage_min
+	print("weight that will be used: ", min_weight)
+
 	X_training, y_training, X_test, y_test = partition_data(X,y)
 
-	c_categories = determine_svm_hyperparameters(X_training, y_training, plot=True)
+	c_categories = determine_svm_hyperparameters(X_training, y_training, plot=True, weight = min_weight)
+	print "c for weighted data = " , c_categories
+	model = SVC(C=c_categories, kernel = "rbf", class_weight = {0 : 1, 1 : min_weight})
+	model.fit(X_training, y_training)
 
+
+	y_pred_test = model.predict(X_test)
+	y_pred_train = model.predict(X_training)
+
+	print_results(y_test, y_training, y_pred_test, y_pred_train)
+
+
+	print("\n\n*****unweighted results*******\n\n")
+
+
+	c_categories = determine_svm_hyperparameters(X_training, y_training, plot=True)
+	print "c for unweighted data = " , c_categories
 	model = SVC(C=c_categories, kernel = "rbf")
 	model.fit(X_training, y_training)
 
@@ -53,6 +73,8 @@ def main():
 	y_pred_train = model.predict(X_training)
 
 	print_results(y_test, y_training, y_pred_test, y_pred_train)
+
+
 
 
 

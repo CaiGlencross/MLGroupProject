@@ -199,7 +199,9 @@ def partition_data(X, y, training_portion = .8):
 	y_test = y[train_partition:]
 
 	return X_training, y_training, X_test, y_test
-def determine_svm_hyperparameters(X_training, y_training, plot=False, show=False):
+
+
+def determine_svm_hyperparameters(X_training, y_training, plot=False, show=False, weight = 1):
 	#SVM model
 	C_vals = [.001, .01, .1, .2,.3, 1.0, 1.5, 2.0, 2.5, 10, 20, 40, 60, 80, 100]
 	c_avg_accs = []
@@ -207,7 +209,7 @@ def determine_svm_hyperparameters(X_training, y_training, plot=False, show=False
 	c_avg_auroc = []
 	c_avg_prec = []
 	for c in C_vals:
-		model = SVC(C=c, kernel = "rbf")
+		model = SVC(C=c, kernel = "rbf", class_weight = {0:1, 1:weight})
 
 		#k fold validation training
 		avg_accs = []
@@ -249,7 +251,22 @@ def determine_svm_hyperparameters(X_training, y_training, plot=False, show=False
 		print "optimal C for Auroc %f"     % (C_vals[np.argmax(c_avg_auroc)])
 		print "optimal C for precision %f" % (C_vals[np.argmax(c_avg_prec)])
 
-	return ((C_vals[np.argmax(c_avg_f1)]) + (C_vals[np.argmax(c_avg_prec)])) / 2
+	# need to pick the best f1_score, within some threshold of precision
+
+	precision_threshold = .6 #given by prof Wu
+	best_index = -1
+	while best_index == -1:
+		max_f1 = 0
+		for i in range(len(c_avg_prec)):
+			if c_avg_prec[i] >= precision_threshold and c_avg_f1[i] > max_f1:
+				max_f1 = c_avg_f1[i]
+				best_index = i
+
+
+		precision_threshold = precision_threshold-.1
+
+
+	return C_vals[best_index]
 
 
 def print_results(y_true_test, y_true_train, y_pred_test, y_pred_train):
@@ -407,7 +424,7 @@ def main():
 	print_results(y_test, y_training, y_pred_test, y_pred_train)
 
 
-	#
+	# 
 
 
 
