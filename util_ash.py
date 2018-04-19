@@ -103,7 +103,7 @@ def select_param_rbf(X, y, kf, metric="accuracy"):
 
 def select_param_logReg(X, y, kf, metric="accuracy"):
     """
-    Sweeps different settings for the hyperparameters of an RBF-kernel SVM,
+    Sweeps different settings for the hyperparameters of a Logistic Regression,
     calculating the k-fold CV performance for each setting, then selecting the
     hyperparameters that 'maximize' the average k-fold CV performance.
     
