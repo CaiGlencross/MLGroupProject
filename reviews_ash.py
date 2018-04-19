@@ -15,31 +15,6 @@ from sklearn.metrics import confusion_matrix
 # encoding=utf8
 import sys
 
-#old data
-
-# # cleaning and merging the data for preprocessing
-# restaurants = pd.read_csv("../yelp-dataset/merged_NV_restaurant.csv", encoding='utf-8', low_memory=False)
-# restaurants = restaurants.dropna(axis=1, thresh=300)
-
-# df_merged = pd.read_csv('../yelp-dataset/review_shortened_rest_NV.csv', encoding='utf-8', low_memory=False)
-
-
-# grouped_reviews_long = df_merged.groupby(['business_id'])
-
-# grouped_reviews = grouped_reviews_long['text'].apply(list)
-
-
-# # now we have all the reviews for a single business as a huge review
-# reviews = pd.DataFrame(grouped_reviews)
-# review_list = reviews.text.apply(lambda u: u[0]).tolist()
-
-
-# # clean the data for null values
-# cleaned_list = [x for x in review_list if str(x) != 'nan']
-# cleaned_df = pd.DataFrame(cleaned_list, columns=['review'])
-
-# create the document term matrix, this is our X or feature matrix
-# cv = CountVectorizer()
 
 
 # ################################################################################
@@ -91,7 +66,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, shuffle=True, random_s
 
 # #one way of K-fold cross validation on smaller set
 
-# ss = StratifiedShuffleSplit(test_size=0.9)
+# ss = StratifiedShuffleSplit(n_splits = 4, test_size=0.2)
 # C_vals = []
 # g_vals = []
 # kf = StratifiedKFold(shuffle=True)
@@ -121,14 +96,17 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, shuffle=True, random_s
 # clf = GridSearchCV(svc, parameters)
 
 
-# #still need to set gamma and C
-# clf_svm = SVC(kernel='rbf', C=0.1, gamma=0.01)
+#still need to set gamma and C from Jack's findings
+clf_svm = SVC(kernel='rbf', C=1000, gamma=0.01)
 
-# # learn the model
-# clf_svm.fit(X_train, y_train)
-# y_pred_test = clf_svm.predict(X_test)
+# learn the model
+clf_svm.fit(X_train, y_train)
+y_pred_train = clf_svm.predict(X_train)
+y_pred_test = clf_svm.predict(X_test)
 
-# printScores(y_test, y_pred_test)
+printScores(y_test, y_pred_test, 'SVM')
+
+printScores(y_train, y_pred_train, 'SVM', train = True)
 
 
 #LOGISTIC REGRESSION CLASSIFIER
@@ -137,7 +115,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, shuffle=True, random_s
 
 # one way of K-fold cross validation on smaller set
 
-# ss = StratifiedShuffleSplit(n_splits = 8, test_size=0.2)
+# ss = StratifiedShuffleSplit(n_splits = 6, test_size=0.2)
 # C_vals = []
 # kf = StratifiedKFold(shuffle=True)
 # for train, _ in ss.split(X, y):
@@ -159,72 +137,12 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, shuffle=True, random_s
 # #clf_logReg = LogisticRegression(C=10000, class_weight = {-1 : 1, 1 : min_weight})
 
 # without weights
-clf_logReg = LogisticRegression(C=10000)
+clf_logReg = LogisticRegression(C=20000)
 
 # learn the model
 clf_logReg.fit(X_train, y_train)
 y_pred_test = clf_logReg.predict(X_test)
 
-printScores(y_test, y_pred_test)
-
-
-################################################################################
-# multiclass classification
-################################################################################
-
-# round each label
-y_multi = restaurants['stars'].apply(lambda u: round(u))
-
-# get the training and test data ready
-# TODO: kfold cv for train/test split
-#X = np.array(X)
-y_multi = np.array(y_multi)
-
-
-X_train, X_test, y_train, y_test = train_test_split(X, y_multi, shuffle=True, random_state= 123)
-
-
-# without weights
-clf_logReg_multi = LogisticRegression(C=10000, multi_class='ovr')
-
-# learn the model
-clf_logReg_multi.fit(X_train, y_train)
-y_pred_test = clf_logReg_multi.predict(X_test)
-y_pred_train = clf_logReg_multi.predict(X_train)
-
-
-
-print "Multinomial Logistic regression Train Accuracy :: ", metrics.accuracy_score(y_train, y_pred_train)
-print "Multinomial Logistic regression Test Accuracy :: ", metrics.accuracy_score(y_test, y_pred_test)
-
-#confusion matrix
-print confusion_matrix(y_test, y_pred_test)
-
-
-# num_classes = 5
-
-# #generate OVA, OVO, and 2 random output codes 
-# output_ova = generate_output_codes(num_classes, 'ova')
-# output_ovo = generate_output_codes(num_classes, 'ovo')
-
-# output_codes = [output_ova, output_ovo]
-# output_names = ["ova", "ovo"]
-# loss_funcs = ["hamming", "sigmoid", "logistic"]
-
-
-# for i, output in enumerate(output_codes):
-# 	for j, func in enumerate(loss_funcs):
-# 		#create classifier
-# 		multiSVM = MulticlassSVM(output, C=10.0, kernel='poly', degree=4, coef0=1.0, gamma=1)
-# 		# fit the classifier 
-# 		multiSVM.fit(X_train, y_train)
-
-
-# 		# predict
-# 		prediction = multiSVM.predict(X_train,loss_func=func)
-
-# 		# count the number of errors
-# 		count = metrics.zero_one_loss(prediction, y_test, normalize = False)
-# 		print " %s and %s error is: %d" % (output_names[i] , loss_funcs[j], count)
+printScores(y_test, y_pred_test, 'Logistic Regression')
 
 
