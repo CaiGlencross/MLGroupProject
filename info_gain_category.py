@@ -132,21 +132,6 @@ def calc_information_gain(X, y):
 # and it is sorted in descending order for the information gain,
 #it's time to get the indicies that matter the most
 
-
-def get_important_categories_name(df_ig_sorted, n):
-    """
-    Parameters
-    ------------
-    df_info_gain: the information gained within the dataframe. Assumes that is sorted.
-    n: top number of categories
-
-    Returns
-    ------
-    top_n : list for indicies of the top n columns
-    """
-    top_n = df_ig_sorted.names[0:n].tolist()
-    return top_n
-
 def get_important_categories_index(df_ig_sorted, n):
     """
     Parameters
@@ -161,17 +146,38 @@ def get_important_categories_index(df_ig_sorted, n):
     top_n = df_ig_sorted.index[0:n].tolist()
     return top_n
 
-def get_top_columns(ig, feature_names):
-    N_CATEGORIES = 50
-    feature_names = category_names.tolist() #get the
+def get_top_columns_index(ig, feature_names, N_CATEGORIES):
     d = {'IG': ig, 'names': feature_names}
+    print(len(ig))
+    print(len(feature_names))
     stump_df = pd.DataFrame(data = d)
     stump_df_sorted = stump_df.sort_values('IG', ascending=False)
     index = get_important_categories_index(stump_df_sorted, N_CATEGORIES)
+    return index # return the top indicies for the categories
 
-    X_curated = X[index] 
-    return X_curated # return the right indicies. 
+#### condensed function
 
+def summary_finder(X, y, feature_names, N_CATEGORIES = 100):
+    """
+    parameters:
+    X : numpy array where all columns are categories,
+         and the values correspond to whether resturants are
+         labeled as that or not
+    y: the star labels
+    N_CATEGORIES: the top N categories which we select for analysis
+
+    feature_names: a list of the category names
+
+    returns:
+    X_curated : the curated X with selected categories
+    category_names_curated  : the categories names, to view them
+    """
+
+    ig = calc_information_gain(X,y)
+    information_categories_index = get_top_columns_index(ig, feature_names, N_CATEGORIES)
+    X_curated = X[:,information_categories_index] # re-index it
+    category_names_curated = [feature_names[i] for i in information_categories_index]
+    return X_curated, category_names_curated
 
 def main():
     # set the arbitrary number of categories that are the best
@@ -189,28 +195,16 @@ def main():
 
     column_range = range(OFF_SET, END_COLUMN)
     category_names = df.columns[column_range]
+    feature_names = category_names.tolist() #get the
+
     X = df.iloc[:,column_range].values
+
+    print(X.shape)
     y = df.stars.values
 
-
-    ig = calc_information_gain(X,y)
-
-    feature_names = category_names.tolist() #get the
-    d = {'IG': ig, 'names': feature_names}
-    stump_df = pd.DataFrame(data = d)
-    stump_df_sorted = stump_df.sort_values('IG', ascending=False)
-
-    index = get_important_categories_index(stump_df_sorted, N_CATEGORIES)
-    # this list corresponds to the columns in original df, "df"
-    index_original_df = list(map(lambda u: u+ OFF_SET, index)) 
-
-    name_important_columns = get_important_categories_name(stump_df_sorted,N_CATEGORIES)
-
-    print(name_important_columns)
-
-    maps_correctly = df.columns[index_original_df ].tolist() == name_important_columns # sanity check -- these should be equal
-    print("maps correctly: ")
-    print(maps_correctly)
+    index, category_names_ig = summary_finder(X,y,feature_names, N_CATEGORIES)
+    print(index.shape)
+    print(index)
 
 
 if __name__ == '__main__':
