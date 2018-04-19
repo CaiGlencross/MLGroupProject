@@ -9,8 +9,8 @@ from matplotlib import pyplot as plt
 
 # Get Business review dataframe
 
-BUSINESS_FILEPATH = "../data/yelp-dataset/yelp_business.csv"
-REVIEWS_FILEPATH = "../data/yelp-dataset/yelp_review.csv"
+BUSINESS_FILEPATH = "../yelp-dataset/yelp_business.csv"
+REVIEWS_FILEPATH = "../yelp-dataset/yelp_review.csv"
 
 business = pd.read_csv(BUSINESS_FILEPATH)
 MIN_REVIEW_COUNT = 100
@@ -42,6 +42,7 @@ print(condensed_reviews.info())
 df_business_shortened = df_business[["business_id", "stars"]]
 df_result = pd.merge(condensed_reviews, df_business_shortened, on ="business_id")
 
+df_result['text'] = df_result['text'].apply(lambda u: u[0])
 df_result.to_csv("star_results.csv")
 
 print(df_result.head(10))
