@@ -19,25 +19,6 @@ from sklearn.svm import SVC
 from sklearn.model_selection import train_test_split
 
 
-# cleaning and merging the data for preprocessing
-#TODO: change this data for your own reading pleasure
-df = pd.read_csv("../data/yelp-dataset/categorized_data.csv")
-
-
-#TODO: @Cai --- is this what you use for your model?..
-df['stars'] = df['stars'].apply(lambda u: 1 if u >= 4.5 else 0)
-
-OFF_SET = 96 #start column
-END_COLUMN = len(df.columns)
-print(df.columns[OFF_SET]) # the hand-hard-coded column which is the category
-print(df.columns[END_COLUMN - 1]) #manually check that you're good for the categories...not ideal oh well
-
-column_range = range(OFF_SET, END_COLUMN)
-category_names = df.columns[column_range]
-X = df.iloc[:,column_range].values
-y = df.stars.values
-
-
 ## ENTROPY CODE ##
 ################################################################################
 def split_data(X, y, feature) :
@@ -143,13 +124,7 @@ def calc_information_gain(X, y):
     return info_gains
 
 
-###############################################################################
-ig = calc_information_gain(X,y)
-
-feature_names = category_names.tolist() #get the
-d = {'IG': ig, 'names': feature_names}
-stump_df = pd.DataFrame(data = d)
-stump_df_sorted = stump_df.sort_values('IG', ascending=False)
+##############################################################################
 
 
 
@@ -157,6 +132,20 @@ stump_df_sorted = stump_df.sort_values('IG', ascending=False)
 # and it is sorted in descending order for the information gain,
 #it's time to get the indicies that matter the most
 
+
+def get_important_categories_name(df_ig_sorted, n):
+    """
+    Parameters
+    ------------
+    df_info_gain: the information gained within the dataframe. Assumes that is sorted.
+    n: top number of categories
+
+    Returns
+    ------
+    top_n : list for indicies of the top n columns
+    """
+    top_n = df_ig_sorted.names[0:n].tolist()
+    return top_n
 
 def get_important_categories_index(df_ig_sorted, n):
     """
@@ -169,36 +158,60 @@ def get_important_categories_index(df_ig_sorted, n):
     ------
     top_n : list for indicies of the top n columns
     """
-    top_n = stump_df_sorted.index[0:n].tolist()
+    top_n = df_ig_sorted.index[0:n].tolist()
     return top_n
 
-def get_important_categories_name(df_ig_sorted, n):
-    """
-    Parameters
-    ------------
-    df_info_gain: the information gained within the dataframe. Assumes that is sorted.
-    n: top number of categories
+def get_top_columns(ig, feature_names):
+    N_CATEGORIES = 50
+    feature_names = category_names.tolist() #get the
+    d = {'IG': ig, 'names': feature_names}
+    stump_df = pd.DataFrame(data = d)
+    stump_df_sorted = stump_df.sort_values('IG', ascending=False)
+    index = get_important_categories_index(stump_df_sorted, N_CATEGORIES)
 
-    Returns
-    ------
-    top_n : a list of the top information_gain columns
-    """
-    top_n = stump_df_sorted.names.iloc[0:n].tolist()
-    return top_n
+    X_curated = X[index] 
+    return X_curated # return the right indicies. 
 
 
-# set the arbitrary number of categories that are the best
-N_CATEGORIES = 50
-
-index = get_important_categories_index(stump_df_sorted, N_CATEGORIES)
-index_original_df = list(map(lambda u: u+ OFF_SET, index)) # this list corresponds to the columns in original df, "df"
+def main():
+    # set the arbitrary number of categories that are the best
+    N_CATEGORIES = 50
 
 
-name_important_columns = get_important_categories_name(stump_df_sorted,N_CATEGORIES)
+    # cleaning and merging the data for preprocessing
+    df = pd.read_csv("../data/yelp-dataset/categorized_data.csv")
 
-print(name_important_columns)
+
+    df['stars'] = df['stars'].apply(lambda u: 1 if u >= 4.5 else -1)
+
+    OFF_SET = 96 #start column
+    END_COLUMN = len(df.columns)
+
+    column_range = range(OFF_SET, END_COLUMN)
+    category_names = df.columns[column_range]
+    X = df.iloc[:,column_range].values
+    y = df.stars.values
 
 
-maps_correctly = df.columns[index_original_df ].tolist() == name_important_columns # sanity check -- these should be equal
-print("maps correctly: ")
-print(maps_correctly)
+    ig = calc_information_gain(X,y)
+
+    feature_names = category_names.tolist() #get the
+    d = {'IG': ig, 'names': feature_names}
+    stump_df = pd.DataFrame(data = d)
+    stump_df_sorted = stump_df.sort_values('IG', ascending=False)
+
+    index = get_important_categories_index(stump_df_sorted, N_CATEGORIES)
+    # this list corresponds to the columns in original df, "df"
+    index_original_df = list(map(lambda u: u+ OFF_SET, index)) 
+
+    name_important_columns = get_important_categories_name(stump_df_sorted,N_CATEGORIES)
+
+    print(name_important_columns)
+
+    maps_correctly = df.columns[index_original_df ].tolist() == name_important_columns # sanity check -- these should be equal
+    print("maps correctly: ")
+    print(maps_correctly)
+
+
+if __name__ == '__main__':
+    main()
