@@ -67,10 +67,10 @@ def main():
 	print "X.shape = " , X.shape
 	print "y.shape = " , y.shape
 	X_training, y_training, X_test, y_test = partition_data(X,y)
-	print "X_training.shape = " , X.shape
-	print "y_training.shape = " , y.shape
-	print "X_test.shape = " , X.shape
-	print "y_test.shape = " , y.shape
+	print "X_training.shape = " , X_training.shape
+	print "y_training.shape = " , y_training.shape
+	print "X_test.shape = " , X_test.shape
+	print "y_test.shape = " , y_test.shape
 
 	# c_categories = determine_svm_hyperparameters(X_training, y_training, plot=True, weight = min_weight)
 	# print "c for weighted data = " , c_categories
@@ -84,7 +84,7 @@ def main():
 	# print_results(y_test, y_training, y_pred_test, y_pred_train)
 
 
-	print("\n\n*****unweighted results*******\n\n")
+	# print("\n\n*****unweighted results*******\n\n")
 
 
 	# c_categories = determine_svm_hyperparameters(X_training, y_training, plot=True)
@@ -99,10 +99,10 @@ def main():
 	# print_results(y_test, y_training, y_pred_test, y_pred_train)
 
 
-	print("\n\n**********logistic regression model results\n\n")
+	print("\n\n*****logistic regression model results*****\n\n")
 
 
-	c_categories = determine_logreg_hyperparameters(X_training, y_training, plot=True)
+	c_categories = determine_logreg_hyperparameters(X_training, y_training)
 	print "c for logistic unweighted data = " , c_categories
 	model = LogisticRegression(C=c_categories)
 	model.fit(X_training, y_training)
