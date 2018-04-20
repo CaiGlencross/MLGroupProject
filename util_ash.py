@@ -4,6 +4,8 @@ from string import punctuation
 import numpy as np
 
 # matplotlib libraries
+import matplotlib as mpl
+mpl.use('TkAgg')
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 # scikit-learn libraries

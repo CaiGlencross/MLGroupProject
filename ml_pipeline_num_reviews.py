@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib
+matplotlib.use('TkAgg')
 from matplotlib import pyplot as plt
 
 # 04/18/2018
@@ -9,8 +10,8 @@ from matplotlib import pyplot as plt
 
 # Get Business review dataframe
 
-BUSINESS_FILEPATH = "../yelp-dataset/yelp_business.csv"
-REVIEWS_FILEPATH = "../yelp-dataset/yelp_review.csv"
+BUSINESS_FILEPATH = "yelp_business.csv"
+REVIEWS_FILEPATH = "yelp_review.csv"
 
 business = pd.read_csv(BUSINESS_FILEPATH)
 MIN_REVIEW_COUNT = 100

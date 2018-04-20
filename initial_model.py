@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 import math
+import matplotlib as mpl
+mpl.use('TkAgg')
 from sklearn.svm import SVC
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import GaussianNB
@@ -12,8 +14,17 @@ from sklearn.metrics import roc_auc_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import accuracy_score
 from sklearn import preprocessing
-import matplotlib as mpl
-mpl.use('TkAgg')
+from nltk_processing import *
+
+from matplotlib.colors import Normalize
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier as DTC
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split, StratifiedKFold, GridSearchCV, StratifiedShuffleSplit
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import confusion_matrix
+import sys
 import matplotlib.pyplot as plt
 
 
@@ -412,43 +423,46 @@ def determine_forest_hyperparameters(X_training, y_training, plot=False, show=Fa
 
 
 
-def print_baseline_classifiers(X, y):
+def print_baseline_classifiers(X_training, y_training, X_test, y_test):
 
-	X_training, y_training, X_test, y_test = partition_data(X,y)
+	#X_training, y_training, X_test, y_test = partition_data(X,y)
 
 	#majority classifier:
 
-	classes = np.unique(y)
+	classes = np.unique(y_training)
 
 	max_count = 0
 	majority = -1
 
 	for ass in classes:
-		count = np.count_nonzero(y == ass)
+		count = np.count_nonzero(y_training == ass)
 		if count > max_count:
 			max_count = count
 			majority = ass
 
 
-	y_pred = np.repeat(majority, y.size)
+	y_pred_train = np.repeat(majority, y_training.size)
+	y_pred_test = np.repeat(majority, y_test.size)
 
 	print "\nResults for the Majority Classifier\n"
 
-	print_baseline_results(y, y_pred)
+	print_results(y_test, y_training, y_pred_test, y_pred_train)
 
 
 	#Random Classifier
-	rate_of_bads = max_count/float(y.size)
-	y_pred = np.random.rand(y.size)
+	rate_of_bads = max_count/float(y_training.size)
+	y_pred_train = np.random.rand(y_training.size)
+	y_pred_test = np.random.rand(y_test.size)
 	thresholder = lambda u: -1 if u<rate_of_bads else 1
-	y_pred = np.array([thresholder(yi) for yi in y_pred])
+	y_pred_train = np.array([thresholder(yi) for yi in y_pred_train])
+	y_pred_test = np.array([thresholder(yi) for yi in y_pred_test])
+
 
 	print "\nResults for the RandomClassifier\n"
 
-	print_baseline_results(y, y_pred)
+	print_results(y_test, y_training, y_pred_test, y_pred_train)
 
 	#Dummy Classifier
-	X_training, y_training, X_test, y_test = partition_data(X,y)
 	clf = DummyClassifier()
 	clf.fit(X_training, y_training)
 	y_pred_train = clf.predict(X_training)

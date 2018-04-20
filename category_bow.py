@@ -83,6 +83,41 @@ def random_forest_trainer(X,y):
 	print "\n\n***RANDOM FOREST RESULTS***\n\n"
 	print_results(y_test, y_training, y_pred_test, y_pred_train)
 
+def get_tfidf_train_test(csv_filename, threshold=4.0):
+
+	restaurants = pd.read_csv(csv_filename, encoding='utf-8', low_memory=False)
+
+	review_list = restaurants['text']
+
+
+	cleaned_list = [x for x in review_list if str(x) != 'nan']
+	cleaned_df = pd.DataFrame(cleaned_list, columns=['review'])
+
+	#update after preprocessing
+	cleaned_df = preprocessing(cleaned_df, 'review')
+
+	#set the targets based on threshold of 4.5 stars
+	y = restaurants['stars'].apply(lambda u: 1 if u >= threshold else -1)
+
+	#get the training and test data ready
+	#TODO: kfold cv for train/test split
+	y = np.array(y)
+
+
+
+
+	X_train, X_test, y_train, y_test = train_test_split(cleaned_df['review'],y, shuffle=True, random_state= 123)
+
+
+	tfidf = TfidfVectorizer(strip_accents='ascii', stop_words='english')
+
+	tfidf.fit(X_train)
+
+	X_train = tfidf.transform(X_train).toarray()
+	X_test = tfidf.transform(X_test).toarray()
+
+	return X_train, y_train, X_test, y_test
+
 
 
 
@@ -140,9 +175,9 @@ def main():
 
 	# print_results(y_test, y_training, y_pred_test, y_pred_train)
 
-	X_baseline, y_baseline = read_in_category_data("merged_NV_restaurant.csv")
+	X_train, y_train, X_test, y_test = get_tfidf_train_test("star_results.csv", threshold = 4.0)
 
-	print_baseline_classifiers(X_baseline,y_baseline)
+	print_baseline_classifiers(X_train, y_train, X_test, y_test)
 
 
 	#random_forest_trainer(X_baseline, y_baseline)
