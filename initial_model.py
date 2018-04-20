@@ -5,6 +5,7 @@ from sklearn.svm import SVC
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import GaussianNB
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.dummy import DummyClassifier
 from sklearn.model_selection import KFold
 from sklearn.metrics import f1_score
 from sklearn.metrics import roc_auc_score
@@ -431,20 +432,44 @@ def print_baseline_classifiers(X, y):
 
 	y_pred = np.repeat(majority, y.size)
 
-	print "Results for the Majority Classifier"
+	print "\nResults for the Majority Classifier\n"
 
 	print_baseline_results(y, y_pred)
 
 
+	#Random Classifier
+	rate_of_bads = max_count/float(y.size)
+	y_pred = np.random.rand(y.size)
+	thresholder = lambda u: -1 if u<rate_of_bads else 1
+	y_pred = np.array([thresholder(yi) for yi in y_pred])
+
+	print "\nResults for the RandomClassifier\n"
+
+	print_baseline_results(y, y_pred)
+
+	#Dummy Classifier
+	X_training, y_training, X_test, y_test = partition_data(X,y)
+	clf = DummyClassifier()
+	clf.fit(X_training, y_training)
+	y_pred_train = clf.predict(X_training)
+	y_pred_test = clf.predict(X_test)
+
+	print "\nResults for the Dummy Classifier\n"
+
+
+	print_results(y_test, y_training, y_pred_test, y_pred_train)
+
+
+
 	#Naive Bayes
 
-	X_training, y_training, X_test, y_test = partition_data(X,y)
+	
 	clf = GaussianNB()
 	clf.fit(X_training, y_training)
 	y_pred_train = clf.predict(X_training)
 	y_pred_test = clf.predict(X_test)
 
-	print "Results for the Gaussian Nave Bayesian"
+	print "\nResults for the Gaussian Nave Bayesian\n"
 
 	print_results(y_test, y_training, y_pred_test, y_pred_train)
 

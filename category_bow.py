@@ -140,13 +140,12 @@ def main():
 
 	# print_results(y_test, y_training, y_pred_test, y_pred_train)
 
-	initial_features = ["review_count", "BusinessParking_street", "BusinessParking_lot", "GoodForMeal_dinner", "GoodForMeal_lunch", "GoodForMeal_breakfast"]
-	X_baseline, y_baseline = get_data_from_csv("resturants.csv", initial_features)
+	X_baseline, y_baseline = read_in_category_data("merged_NV_restaurant.csv")
 
 	print_baseline_classifiers(X_baseline,y_baseline)
 
 
-	random_forest_trainer(X_baseline, y_baseline)
+	#random_forest_trainer(X_baseline, y_baseline)
 
 
 
