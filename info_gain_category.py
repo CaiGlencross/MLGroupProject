@@ -19,25 +19,6 @@ from sklearn.svm import SVC
 from sklearn.model_selection import train_test_split
 
 
-# cleaning and merging the data for preprocessing
-#TODO: change this data for your own reading pleasure
-df = pd.read_csv("../data/yelp-dataset/categorized_data.csv")
-
-
-#TODO: @Cai --- is this what you use for your model?..
-df['stars'] = df['stars'].apply(lambda u: 1 if u >= 4.5 else 0)
-
-OFF_SET = 96 #start column
-END_COLUMN = len(df.columns)
-print(df.columns[OFF_SET]) # the hand-hard-coded column which is the category
-print(df.columns[END_COLUMN - 1]) #manually check that you're good for the categories...not ideal oh well
-
-column_range = range(OFF_SET, END_COLUMN)
-category_names = df.columns[column_range]
-X = df.iloc[:,column_range].values
-y = df.stars.values
-
-
 ## ENTROPY CODE ##
 ################################################################################
 def split_data(X, y, feature) :
@@ -143,20 +124,13 @@ def calc_information_gain(X, y):
     return info_gains
 
 
-###############################################################################
-ig = calc_information_gain(X,y)
-
-feature_names = category_names.tolist() #get the
-d = {'IG': ig, 'names': feature_names}
-stump_df = pd.DataFrame(data = d)
-stump_df_sorted = stump_df.sort_values('IG', ascending=False)
+##############################################################################
 
 
 
 # Now that we have a dataframe with the information gain for each category,
 # and it is sorted in descending order for the information gain,
 #it's time to get the indicies that matter the most
-
 
 def get_important_categories_index(df_ig_sorted, n):
     """
@@ -169,36 +143,69 @@ def get_important_categories_index(df_ig_sorted, n):
     ------
     top_n : list for indicies of the top n columns
     """
-    top_n = stump_df_sorted.index[0:n].tolist()
+    top_n = df_ig_sorted.index[0:n].tolist()
     return top_n
 
-def get_important_categories_name(df_ig_sorted, n):
+def get_top_columns_index(ig, feature_names, N_CATEGORIES):
+    d = {'IG': ig, 'names': feature_names}
+    print(len(ig))
+    print(len(feature_names))
+    stump_df = pd.DataFrame(data = d)
+    stump_df_sorted = stump_df.sort_values('IG', ascending=False)
+    index = get_important_categories_index(stump_df_sorted, N_CATEGORIES)
+    return index # return the top indicies for the categories
+
+#### condensed function
+
+def summary_finder(X, y, feature_names, N_CATEGORIES = 100):
     """
-    Parameters
-    ------------
-    df_info_gain: the information gained within the dataframe. Assumes that is sorted.
-    n: top number of categories
+    parameters:
+    X : numpy array where all columns are categories,
+         and the values correspond to whether resturants are
+         labeled as that or not
+    y: the star labels
+    N_CATEGORIES: the top N categories which we select for analysis
 
-    Returns
-    ------
-    top_n : a list of the top information_gain columns
+    feature_names: a list of the category names
+
+    returns:
+    X_curated : the curated X with selected categories
+    category_names_curated  : the categories names, to view them
     """
-    top_n = stump_df_sorted.names.iloc[0:n].tolist()
-    return top_n
+
+    ig = calc_information_gain(X,y)
+    information_categories_index = get_top_columns_index(ig, feature_names, N_CATEGORIES)
+    X_curated = X[:,information_categories_index] # re-index it
+    category_names_curated = [feature_names[i] for i in information_categories_index]
+    return X_curated, category_names_curated
+
+def main():
+    # set the arbitrary number of categories that are the best
+    N_CATEGORIES = 50
 
 
-# set the arbitrary number of categories that are the best
-N_CATEGORIES = 50
-
-index = get_important_categories_index(stump_df_sorted, N_CATEGORIES)
-index_original_df = list(map(lambda u: u+ OFF_SET, index)) # this list corresponds to the columns in original df, "df"
+    # cleaning and merging the data for preprocessing
+    df = pd.read_csv("../data/yelp-dataset/categorized_data.csv")
 
 
-name_important_columns = get_important_categories_name(stump_df_sorted,N_CATEGORIES)
+    df['stars'] = df['stars'].apply(lambda u: 1 if u >= 4.5 else -1)
 
-print(name_important_columns)
+    OFF_SET = 96 #start column
+    END_COLUMN = len(df.columns)
+
+    column_range = range(OFF_SET, END_COLUMN)
+    category_names = df.columns[column_range]
+    feature_names = category_names.tolist() #get the
+
+    X = df.iloc[:,column_range].values
+
+    print(X.shape)
+    y = df.stars.values
+
+    index, category_names_ig = summary_finder(X,y,feature_names, N_CATEGORIES)
+    print(index.shape)
+    print(index)
 
 
-maps_correctly = df.columns[index_original_df ].tolist() == name_important_columns # sanity check -- these should be equal
-print("maps correctly: ")
-print(maps_correctly)
+if __name__ == '__main__':
+    main()

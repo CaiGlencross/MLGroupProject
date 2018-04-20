@@ -103,7 +103,7 @@ def select_param_rbf(X, y, kf, metric="accuracy"):
 
 def select_param_logReg(X, y, kf, metric="accuracy"):
     """
-    Sweeps different settings for the hyperparameters of an RBF-kernel SVM,
+    Sweeps different settings for the hyperparameters of a Logistic Regression,
     calculating the k-fold CV performance for each setting, then selecting the
     hyperparameters that 'maximize' the average k-fold CV performance.
     
@@ -124,7 +124,7 @@ def select_param_logReg(X, y, kf, metric="accuracy"):
 
     print 'Logistic Regression Hyperparameter Selection based on ' + str(metric) + ':'
 
-    C_vals = [100,1000,5000, 7500, 10000, 15000, 20000]
+    C_vals = [100,1000,5000, 7500, 10000, 15000, 20000, 30000, 40000]
 
     score_array = np.zeros(len(C_vals))
 
@@ -190,11 +190,19 @@ def performance_CI(clf, X, y, metric="accuracy"):
     return score, lower, upper
 
 
-def printScores(y_true, y_pred):
-    print "test accuracy for model was %f"      %   (performance(y_true, y_pred, 'accuracy'))
-    print "test f1 score for model was %f"      %   (performance(y_true, y_pred,'f1_score'))
-    print "test precision for model was %f"     %   (performance(y_true, y_pred,'precision'))
-    print "test recall for model was %f"        %   (performance(y_true, y_pred,'sensitivity'))
+def printScores(y_true, y_pred, model, train=False):
+    if train == True:
+        print "train accuracy for %s was %f"      %   (model, performance(y_true, y_pred, 'accuracy'))
+        print "train f1 score for %s was %f"      %   (model, performance(y_true, y_pred,'f1_score'))
+        print "train precision for %s was %f"     %   (model, performance(y_true, y_pred,'precision'))
+        print "train recall for %s was %f"        %   (model, performance(y_true, y_pred,'sensitivity'))
+
+    else:
+        print "test accuracy for %s was %f"      %   (model, performance(y_true, y_pred, 'accuracy'))
+        print "test f1 score for %s was %f"      %   (model, performance(y_true, y_pred,'f1_score'))
+        print "test precision for %s was %f"     %   (model, performance(y_true, y_pred,'precision'))
+        print "test recall for %s was %f"        %   (model, performance(y_true, y_pred,'sensitivity'))
+
 
 
 

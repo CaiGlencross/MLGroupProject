@@ -1,12 +1,13 @@
 #Author: Cai Glencross
 
-#This file is for training an SVM on a bag of words vector 
+#This file is for training an SVM on a bag of words vector
 #Where each "word is a category"
 
 #"merged_NV_restaurant.csv"
 import pandas as pd
 import numpy as np
 from initial_model import *
+from info_gain_category import summary_finder
 
 def read_in_category_data(csv_filename, threshold=4.5):
 	df = pd.read_csv(csv_filename)
@@ -52,6 +53,18 @@ def read_in_category_data(csv_filename, threshold=4.5):
 	restaurant_labels = restaurant_labels.applymap(lambda x: 1 if x >=threshold else -1)
 
 	y = np.ravel(restaurant_labels.values)
+
+	##### start TODO ######################
+	# add in the curated indicies
+
+	feature_names = df_categories.columns.tolist()
+	X_curated, col_names = summary_finder(X,y, feature_names, N_CATEGORIES=100)
+	print(col_names)
+	# Change the X to smaller categories
+	X = X_curated
+
+	###### end TODO ########################
+
 
 	return X, y
 
@@ -118,6 +131,3 @@ def main():
 
 if __name__ == "__main__" :
     main()
-
-
-	
