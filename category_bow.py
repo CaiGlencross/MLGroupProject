@@ -60,43 +60,40 @@ def read_in_category_data(csv_filename, threshold=4.5):
 def main():
 	X, y = read_in_category_data("merged_NV_restaurant.csv")
 
-	# percentage_min = np.count_nonzero(y == 1) / float(y.size)
-	# percentage_maj = 1 - percentage_min
-	# min_weight = percentage_maj/percentage_min
-	# print("weight that will be used: ", min_weight)
-	print "X.shape = " , X.shape
-	print "y.shape = " , y.shape
+	percentage_min = np.count_nonzero(y == 1) / float(y.size)
+	percentage_maj = 1 - percentage_min
+	min_weight = percentage_maj/percentage_min
+	print("weight that will be used: ", min_weight)
+
+	print("\n\n*****weighted results*******\n\n")
+
 	X_training, y_training, X_test, y_test = partition_data(X,y)
-	print "X_training.shape = " , X_training.shape
-	print "y_training.shape = " , y_training.shape
-	print "X_test.shape = " , X_test.shape
-	print "y_test.shape = " , y_test.shape
 
-	# c_categories = determine_svm_hyperparameters(X_training, y_training, plot=True, weight = min_weight)
-	# print "c for weighted data = " , c_categories
-	# model = SVC(C=c_categories, kernel = "rbf", class_weight = {0 : 1, 1 : min_weight})
-	# model.fit(X_training, y_training)
+	c_categories = determine_svm_hyperparameters(X_training, y_training, plot=True, weight = min_weight)
+	print "c for weighted data = " , c_categories
+	model = SVC(C=c_categories, kernel = "rbf", class_weight = {-1 : 1, 1 : min_weight})
+	model.fit(X_training, y_training)
 
 
-	# y_pred_test = model.predict(X_test)
-	# y_pred_train = model.predict(X_training)
+	y_pred_test = model.predict(X_test)
+	y_pred_train = model.predict(X_training)
 
-	# print_results(y_test, y_training, y_pred_test, y_pred_train)
-
-
-	# print("\n\n*****unweighted results*******\n\n")
+	print_results(y_test, y_training, y_pred_test, y_pred_train)
 
 
-	# c_categories = determine_svm_hyperparameters(X_training, y_training, plot=True)
-	# print "c for unweighted data = " , c_categories
-	# model = SVC(C=c_categories, kernel = "rbf")
-	# model.fit(X_training, y_training)
+	print("\n\n*****unweighted results*******\n\n")
 
 
-	# y_pred_test = model.predict(X_test)
-	# y_pred_train = model.predict(X_training)
+	c_categories = determine_svm_hyperparameters(X_training, y_training, plot=True)
+	print "c for unweighted data = " , c_categories
+	model = SVC(C=c_categories, kernel = "rbf")
+	model.fit(X_training, y_training)
 
-	# print_results(y_test, y_training, y_pred_test, y_pred_train)
+
+	y_pred_test = model.predict(X_test)
+	y_pred_train = model.predict(X_training)
+
+	print_results(y_test, y_training, y_pred_test, y_pred_train)
 
 
 	print("\n\n*****logistic regression model results*****\n\n")
