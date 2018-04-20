@@ -2,7 +2,8 @@ import numpy as np
 import pandas as pd
 
 from util_ash import *
-
+import matplotlib as mpl
+mpl.use('TkAgg')
 import matplotlib.pyplot as plt
 
 from nltk_processing import *
