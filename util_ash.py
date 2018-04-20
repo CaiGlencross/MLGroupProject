@@ -8,7 +8,8 @@ import matplotlib.pyplot as plt
 
 # scikit-learn libraries
 from sklearn.svm import SVC
-from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import StratifiedKFold, KFold
+from sklearn.tree import DecisionTreeClassifier as DTC
 from sklearn import metrics
 from sklearn.linear_model import LogisticRegression
 from sklearn.utils import shuffle
@@ -124,7 +125,7 @@ def select_param_logReg(X, y, kf, metric="accuracy"):
 
     print 'Logistic Regression Hyperparameter Selection based on ' + str(metric) + ':'
 
-    C_vals = [100,1000,5000, 7500, 10000, 15000, 20000, 30000, 40000]
+    C_vals = [5,5.5,6,6.5, 7,7.5, 8, 8.5 ,9, 9.5, 10]
 
     score_array = np.zeros(len(C_vals))
 
@@ -138,6 +139,155 @@ def select_param_logReg(X, y, kf, metric="accuracy"):
     i = score_array.argmax()
 
     return C_vals[i]
+
+def determine_logreg_hyperparameters(X_training, y_training, plot=False, show=False, weight = 1):
+    C_vals = [7,7.5, 8, 8.5 ,9, 9.5, 10]
+    c_avg_accs = []
+    c_avg_f1 = []
+    c_avg_auroc = []
+    c_avg_prec = []
+    c_avg_recall = []
+    for c in C_vals:
+        model = LogisticRegression(C=c, class_weight = {-1:1, 1:weight})
+
+        #k fold validation training
+        avg_accs = []
+        avg_f1s = []
+        avg_aurocs = []
+        avg_precs = []
+        avg_recalls = []
+        avg_percentage = 0
+        kf = KFold(n_splits = 10)
+        for train_index, val_index in kf.split(X_training):
+            X_train, X_val = X_training[train_index], X_training[val_index]
+            y_train, y_val = y_training[train_index], y_training[val_index]
+            model.fit(X_train, y_train)
+            y_pred = model.predict(X_val)
+
+            avg_accs.append(model.score(X_val, y_val))
+            avg_f1s.append(metrics.f1_score(y_val, y_pred))
+            avg_aurocs.append(metrics.roc_auc_score(y_val, y_pred))
+            avg_precs.append(metrics.precision_score(y_val, y_pred))
+            avg_recalls.append(metrics.recall_score(y_val, y_pred))
+
+        # print "average accuracy for %f k-fold validation was %f" % (c, np.mean(avg_accs))
+        c_avg_accs.append(np.mean(avg_accs))
+        c_avg_f1.append(np.mean(avg_f1s))
+        c_avg_auroc.append(np.mean(avg_aurocs))
+        c_avg_prec.append(np.mean(avg_precs))
+        c_avg_recall.append(np.mean(avg_recalls))
+        #if show: print "average distribution is %f" % (avg_percentage/float(10))
+    if plot:
+        plt.figure()
+        plt.xlabel("C values")
+        plt.ylabel("metric score")
+        plt.plot(C_vals, c_avg_accs, label="Accuracy")
+        plt.plot(C_vals, c_avg_f1, label="F1_Score")
+        plt.plot(C_vals, c_avg_auroc, label="AUROC")
+        plt.plot(C_vals, c_avg_prec, label="Precision")
+        plt.plot(C_vals, c_avg_recall, label="Recall")
+        plt.legend()
+        plt.show()
+    if show:
+        print "optimal C for accuracy %f"  % (C_vals[np.argmax(c_avg_accs)])
+        print "optimal C for f1 score %f"  % (C_vals[np.argmax(c_avg_f1)])
+        print "optimal C for Auroc %f"     % (C_vals[np.argmax(c_avg_auroc)])
+        print "optimal C for precision %f" % (C_vals[np.argmax(c_avg_prec)])
+        print "optimal C for recall %f" % (C_vals[np.argmax(c_avg_recall)])
+
+    # need to pick the best f1_score, within some threshold of precision
+
+    precision_threshold = .6 #given by prof Wu
+    best_index = -1
+    while best_index == -1:
+        max_f1 = 0
+        for i in range(len(c_avg_prec)):
+            if c_avg_prec[i] >= precision_threshold and c_avg_f1[i] > max_f1:
+                max_f1 = c_avg_f1[i]
+                best_index = i
+
+
+        precision_threshold = precision_threshold-.1
+
+
+    return C_vals[best_index]
+
+def determine_DT_hyperparameters(X_training, y_training, plot=False, show=False):
+    print 'starting to test for max_depth parameter...'
+    #depth_vals = [1,2,10,20, 50,100,200, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000,8000, 10000]
+    depth_vals = [10,20,30,40,50,60,70]
+    d_avg_accs = []
+    d_avg_f1 = []
+    d_avg_auroc = []
+    d_avg_prec = []
+    d_avg_recall = []
+    for d in depth_vals:
+        print 'starting depth: ', d
+        model = DTC(criterion='entropy', random_state=123, max_depth=d)
+
+        #k fold validation training
+        avg_accs = []
+        avg_f1s = []
+        avg_aurocs = []
+        avg_precs = []
+        avg_recalls = []
+        avg_percentage = 0
+        kf = KFold(n_splits = 2)
+        for train_index, val_index in kf.split(X_training):
+            X_train, X_val = X_training[train_index], X_training[val_index]
+            y_train, y_val = y_training[train_index], y_training[val_index]
+            model.fit(X_train, y_train)
+            y_pred = model.predict(X_val)
+
+            avg_accs.append(model.score(X_val, y_val))
+            avg_f1s.append(metrics.f1_score(y_val, y_pred))
+            avg_aurocs.append(metrics.roc_auc_score(y_val, y_pred))
+            avg_precs.append(metrics.precision_score(y_val, y_pred))
+            avg_recalls.append(metrics.recall_score(y_val, y_pred))
+
+        # print "average accuracy for %f k-fold validation was %f" % (c, np.mean(avg_accs))
+        d_avg_accs.append(np.mean(avg_accs))
+        d_avg_f1.append(np.mean(avg_f1s))
+        d_avg_auroc.append(np.mean(avg_aurocs))
+        d_avg_prec.append(np.mean(avg_precs))
+        d_avg_recall.append(np.mean(avg_recalls))
+        #if show: print "average distribution is %f" % (avg_percentage/float(10))
+    if plot:
+        plt.figure()
+        plt.xlabel("max_depth values")
+        plt.ylabel("metric score")
+        plt.plot(depth_vals, d_avg_accs, label="Accuracy")
+        plt.plot(depth_vals, d_avg_f1, label="F1_Score")
+        plt.plot(depth_vals, d_avg_auroc, label="AUROC")
+        plt.plot(depth_vals, d_avg_prec, label="Precision")
+        plt.plot(depth_vals, d_avg_recall, label="Recall")
+        plt.legend()
+        plt.show()
+    if show:
+        print "optimal depth for accuracy %f"  % (depth_vals[np.argmax(d_avg_accs)])
+        print "optimal depth for f1 score %f"  % (depth_vals[np.argmax(d_avg_f1)])
+        print "optimal depth for AUROC %f"     % (depth_vals[np.argmax(d_avg_auroc)])
+        print "optimal depth for precision %f" % (depth_vals[np.argmax(d_avg_prec)])
+        print "optimal depth for recall %f" % (depth_vals[np.argmax(d_avg_recall)])
+
+    # need to pick the best f1_score, within some threshold of precision
+
+    precision_threshold = .6 #given by prof Wu
+    best_index = -1
+    while best_index == -1:
+        max_f1 = 0
+        for i in range(len(d_avg_prec)):
+            if d_avg_prec[i] >= precision_threshold and d_avg_f1[i] > max_f1:
+                max_f1 = d_avg_f1[i]
+                best_index = i
+
+
+        precision_threshold = precision_threshold-.1
+
+
+    return depth_vals[best_index]
+
+
 
 
 def performance_CI(clf, X, y, metric="accuracy"):
@@ -196,12 +346,14 @@ def printScores(y_true, y_pred, model, train=False):
         print "train f1 score for %s was %f"      %   (model, performance(y_true, y_pred,'f1_score'))
         print "train precision for %s was %f"     %   (model, performance(y_true, y_pred,'precision'))
         print "train recall for %s was %f"        %   (model, performance(y_true, y_pred,'sensitivity'))
+        print "train AUROC for %s was %f"         %   (model, performance(y_true, y_pred,'auroc'))
 
     else:
         print "test accuracy for %s was %f"      %   (model, performance(y_true, y_pred, 'accuracy'))
         print "test f1 score for %s was %f"      %   (model, performance(y_true, y_pred,'f1_score'))
         print "test precision for %s was %f"     %   (model, performance(y_true, y_pred,'precision'))
         print "test recall for %s was %f"        %   (model, performance(y_true, y_pred,'sensitivity'))
+        print "test AUROC for %s was %f"         %   (model, performance(y_true, y_pred,'auroc'))
 
 
 
@@ -559,6 +711,60 @@ class MulticlassSVM :
         return y
 
 
+def print_tree(decision_tree, feature_names=None, class_names=None, root=0, depth=1):
+    """
+    Print decision tree.
+    
+    Only works with decision_tree.n_outputs = 1.
+    https://healthyalgorithms.com/2015/02/19/ml-in-python-getting-the-decision-tree-out-of-sklearn/
+        
+    Parameters
+    --------------------
+        decision_tree -- tree (sklearn.tree._tree.Tree or Tree)
+        feature_names -- list, feature names
+        class_names   -- list, class names
+    """
+    
+    t = decision_tree
+    if t.n_outputs != 1:
+        raise NotImplementedError()
+    
+    if depth == 1:
+        print 'def predict(x):'
+    
+    indent = '    ' * depth
+    
+    # determine node numbers of children
+    left_child = t.children_left[root]
+    right_child = t.children_right[root]
+    
+    # determine predicted class for this node
+    values = t.value[root][0]
+    class_ndx = np.argmax(values)
+    if class_names is not None:
+        class_str = class_names[class_ndx]
+    else:
+        class_str = str(class_ndx)
+        
+    # determine node string     
+    node_str = "(node %d: impurity = %.2f, samples = %d, value = %s, class = %s)" % \
+        (root, t.impurity[root], t.n_node_samples[root], values, class_str)
+    
+    # main code
+    if left_child == tree._tree.TREE_LEAF:
+        print indent + 'return %s # %s' % (class_str, node_str)
+    else:
+        # determine feature name
+        if feature_names is not None:
+            name = feature_names[t.feature[root]]
+        else:
+            name = "x_%d" % t.feature[root]
+        
+        print indent + 'if %s <= %.2f: # %s' % (name, t.threshold[root], node_str)
+        print_tree(t, feature_names, class_names, root=left_child, depth=depth+1)
+        
+        print indent + 'else:'
+        print_tree(t, feature_names, class_names, root=right_child, depth=depth+1)
 
 
 
