@@ -7,9 +7,11 @@ import matplotlib.pyplot as plt
 
 from nltk_processing import *
 
+from matplotlib.colors import Normalize
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier as DTC
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split, StratifiedKFold, GridSearchCV, StratifiedShuffleSplit
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import confusion_matrix
@@ -69,7 +71,7 @@ n2,d2 = X_test.shape
 print 'number of training restaurants (examples): ', n
 print 'number of testing restaurants (examples): ', n2
 print 'number of features from tfidf train: ', d
-print 'number of features from tfidft test: ', d2
+print 'number of features from tfidf test: ', d2
 
 
 
@@ -151,7 +153,42 @@ print 'number of features from tfidft test: ', d2
 ##then try even finer resolution 
 #determine_logreg_hyperparameters(X_train, y_train, plot=True, show=True)
 
-print 'Using Logistic Regression...'
+# print 'Using Logistic Regression...'
+
+# # # add class weights
+# # percentage_min = np.count_nonzero(y == 1) / float(y.size)
+# # percentage_maj = 1 - percentage_min
+# # min_weight = percentage_maj/percentage_min
+# # print("weight that will be used: ", min_weight)
+
+# # # with weights
+# # clf_logReg = LogisticRegression(C=9, class_weight = {-1 : 1, 1 : min_weight})
+
+# #without weights
+
+# clf_logReg = LogisticRegression(C=9)
+
+# # learn the model
+# result = clf_logReg.fit(X_train, y_train)
+# y_pred_train = clf_logReg.predict(X_train)
+# y_pred_test = clf_logReg.predict(X_test)
+
+
+# printScores(y_train, y_pred_train, 'Logistic Regression', train= True)
+# print "\t"
+# printScores(y_test, y_pred_test, 'Logistic Regression')
+
+# confusion_matrix2 = confusion_matrix(y_test, y_pred_test)
+# print(confusion_matrix2)
+
+
+################################################################
+
+# Decision Tree
+
+# print 'Using DecisionTreeClassifier...'
+
+# #determine_DT_hyperparameters(X_train, y_train, plot=True, show=True)
 
 # # add class weights
 # percentage_min = np.count_nonzero(y == 1) / float(y.size)
@@ -159,58 +196,85 @@ print 'Using Logistic Regression...'
 # min_weight = percentage_maj/percentage_min
 # print("weight that will be used: ", min_weight)
 
-# # with weights
-# clf_logReg = LogisticRegression(C=9, class_weight = {-1 : 1, 1 : min_weight})
+# #clf_DT = DTC(criterion='entropy', random_state=123, max_depth=40, class_weight = {-1 : 1, 1 : min_weight})
+# clf_DT = DTC(criterion='entropy', random_state=123, max_depth=40)
+# clf_DT.fit(X_train, y_train)
+# #print_tree(clf_DT.tree_, feature_names=tfidf.vocabulary_, class_names=["-1", "1"])
 
-#without weights
+# #print clf_DT.feature_importances_
+# y_pred_test = clf_DT.predict(X_test)
+# y_pred_train = clf_DT.predict(X_train)
 
-clf_logReg = LogisticRegression(C=9)
+# #print 'y_pred = ', y_pred_test
 
-# learn the model
-result = clf_logReg.fit(X_train, y_train)
-y_pred_train = clf_logReg.predict(X_train)
-y_pred_test = clf_logReg.predict(X_test)
+# printScores(y_train, y_pred_train, 'DecisionTreeClassifier', train= True)
+# print "\t"
+# printScores(y_test, y_pred_test, 'DecisionTreeClassifier')
 
-
-printScores(y_train, y_pred_train, 'Logistic Regression', train= True)
-print "\t"
-printScores(y_test, y_pred_test, 'Logistic Regression')
-
-confusion_matrix = confusion_matrix(y_test, y_pred_test)
-print(confusion_matrix)
-
+# confusion_matrix3 = confusion_matrix(y_test, y_pred_test)
+# print(confusion_matrix3)
 
 ################################################################
 
-# Decision Tree
+#Random Forest
 
-print 'Using DecisionTreeClassifier...'
+print 'Using Random Forest...'
 
-#determine_DT_hyperparameters(X_train, y_train, plot=True, show=True)
+n_est_range = [1, 3, 4, 5,6, 7,8,10]
+max_depth_range = [95,96, 97, 98, 99, 100,101, 102, 103, 104, 105,110,115]
+parameters = {'n_estimators': n_est_range, 'max_depth': max_depth_range}
 
-# add class weights
-percentage_min = np.count_nonzero(y == 1) / float(y.size)
-percentage_maj = 1 - percentage_min
-min_weight = percentage_maj/percentage_min
-print("weight that will be used: ", min_weight)
+random_forest = RandomForestClassifier(criterion="entropy")
+grid = GridSearchCV(random_forest, parameters,return_train_score=True, scoring='f1_weighted')
 
-#clf_DT = DTC(criterion='entropy', random_state=123, max_depth=40, class_weight = {-1 : 1, 1 : min_weight})
-clf_DT = DTC(criterion='entropy', random_state=123, max_depth=40)
-clf_DT.fit(X_train, y_train)
-#print_tree(clf_DT.tree_, feature_names=tfidf.vocabulary_, class_names=["-1", "1"])
+X_cv, _, y_cv, _= train_test_split(X_train, y_train, test_size=0.2) 
 
-#print clf_DT.feature_importances_
-y_pred_test = clf_DT.predict(X_test)
-y_pred_train = clf_DT.predict(X_train)
+grid.fit(X_cv, y_cv)
+
+print("The best parameters are %s with a score of %0.2f"
+      % (grid.best_params_, grid.best_score_))
+
+
+test_scores = grid.cv_results_['mean_test_score'].reshape(len(n_est_range),len(max_depth_range))
+print "test scores: ", test_scores
+
+# Draw heatmap of the validation accuracy as a function of number of estimators and max_depth
+#
+# The score are encoded as colors with the hot colormap which varies from dark
+# red to bright yellow. As the most interesting scores are all located in the
+# 0.92 to 0.97 range we use a custom normalizer to set the mid-point to 0.92 so
+# as to make it easier to visualize the small variations of score values in the
+# interesting range while not brutally collapsing all the low score values to
+# the same color.
+
+plt.figure(figsize=(8, 6))
+plt.subplots_adjust(left=.2, right=0.95, bottom=0.15, top=0.95)
+plt.imshow(test_scores, interpolation='nearest', cmap=plt.cm.hot,
+           norm=MidpointNormalize(vmin=0.2, midpoint=0.92))
+plt.xlabel('Max Depth')
+plt.ylabel('Number of Estimators')
+plt.colorbar()
+plt.xticks(np.arange(len(max_depth_range)), max_depth_range, rotation=45)
+plt.yticks(np.arange(len(n_est_range)), n_est_range)
+plt.title('Training Accuracy Score')
+plt.show()
+
+
+
+clf_RF = RandomForestClassifier(criterion='entropy', n_estimators= 5, max_depth=110)
+clf_RF.fit(X_train, y_train)
+
+y_pred_test = clf_RF.predict(X_test)
+y_pred_train = clf_RF.predict(X_train)
 
 #print 'y_pred = ', y_pred_test
 
-printScores(y_train, y_pred_train, 'DecisionTreeClassifier', train= True)
+printScores(y_train, y_pred_train, 'RandomForestClassifier', train= True)
 print "\t"
-printScores(y_test, y_pred_test, 'DecisionTreeClassifier')
+printScores(y_test, y_pred_test, 'RandomForestClassifier')
 
-confusion_matrix = confusion_matrix(y_test, y_pred_test)
-print(confusion_matrix)
+confusion_matrix4 = confusion_matrix(y_test, y_pred_test)
+print(confusion_matrix4)
 
 
 
