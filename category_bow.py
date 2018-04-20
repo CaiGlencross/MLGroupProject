@@ -6,6 +6,7 @@
 #"merged_NV_restaurant.csv"
 import pandas as pd
 import numpy as np
+from sklearn.ensemble import RandomForestClassifier
 from initial_model import *
 from info_gain_category import summary_finder
 
@@ -68,64 +69,84 @@ def read_in_category_data(csv_filename, threshold=4.5):
 
 	return X, y
 
+def random_forest_trainer(X,y):
+	X_training, y_training, X_test, y_test = partition_data(X,y)
+
+	depth = determine_forest_hyperparameters(X_training, y_training)
+
+	model = RandomForestClassifier(max_depth=depth)
+
+	model.fit(X_training,y_training)
+
+	y_pred_train = model.predict(X_training)
+	y_pred_test = model.predict(X_test)
+	print "\n\n***RANDOM FOREST RESULTS***\n\n"
+	print_results(y_test, y_training, y_pred_test, y_pred_train)
+
+
+
 
 
 def main():
-	X, y = read_in_category_data("merged_NV_restaurant.csv")
+	# X, y = read_in_category_data("merged_NV_restaurant.csv")
 
-	percentage_min = np.count_nonzero(y == 1) / float(y.size)
-	percentage_maj = 1 - percentage_min
-	min_weight = percentage_maj/percentage_min
-	print("weight that will be used: ", min_weight)
+	# percentage_min = np.count_nonzero(y == 1) / float(y.size)
+	# percentage_maj = 1 - percentage_min
+	# min_weight = percentage_maj/percentage_min
+	# print("weight that will be used: ", min_weight)
 
-	print("\n\n*****weighted results*******\n\n")
+	# print("\n\n*****weighted results*******\n\n")
 
-	X_training, y_training, X_test, y_test = partition_data(X,y)
+	# X_training, y_training, X_test, y_test = partition_data(X,y)
 
-	c_categories = determine_svm_hyperparameters(X_training, y_training, plot=True, weight = min_weight)
-	print "c for weighted data = " , c_categories
-	model = SVC(C=c_categories, kernel = "rbf", class_weight = {-1 : 1, 1 : min_weight})
-	model.fit(X_training, y_training)
-
-
-	y_pred_test = model.predict(X_test)
-	y_pred_train = model.predict(X_training)
-
-	print_results(y_test, y_training, y_pred_test, y_pred_train)
+	# c_categories = determine_svm_hyperparameters(X_training, y_training, plot=True, weight = min_weight)
+	# print "c for weighted data = " , c_categories
+	# model = SVC(C=c_categories, kernel = "rbf", class_weight = {-1 : 1, 1 : min_weight})
+	# model.fit(X_training, y_training)
 
 
-	print("\n\n*****unweighted results*******\n\n")
+	# y_pred_test = model.predict(X_test)
+	# y_pred_train = model.predict(X_training)
+
+	# print_results(y_test, y_training, y_pred_test, y_pred_train)
 
 
-	c_categories = determine_svm_hyperparameters(X_training, y_training, plot=True)
-	print "c for unweighted data = " , c_categories
-	model = SVC(C=c_categories, kernel = "rbf")
-	model.fit(X_training, y_training)
+	# print("\n\n*****unweighted results*******\n\n")
 
 
-	y_pred_test = model.predict(X_test)
-	y_pred_train = model.predict(X_training)
-
-	print_results(y_test, y_training, y_pred_test, y_pred_train)
-
-
-	print("\n\n*****logistic regression model results*****\n\n")
+	# c_categories = determine_svm_hyperparameters(X_training, y_training, plot=True)
+	# print "c for unweighted data = " , c_categories
+	# model = SVC(C=c_categories, kernel = "rbf")
+	# model.fit(X_training, y_training)
 
 
-	c_categories = determine_logreg_hyperparameters(X_training, y_training)
-	print "c for logistic unweighted data = " , c_categories
-	model = LogisticRegression(C=c_categories)
-	model.fit(X_training, y_training)
+	# y_pred_test = model.predict(X_test)
+	# y_pred_train = model.predict(X_training)
+
+	# print_results(y_test, y_training, y_pred_test, y_pred_train)
 
 
-	y_pred_test = model.predict(X_test)
-	y_pred_train = model.predict(X_training)
-
-	print_results(y_test, y_training, y_pred_test, y_pred_train)
+	# print("\n\n*****logistic regression model results*****\n\n")
 
 
+	# c_categories = determine_logreg_hyperparameters(X_training, y_training)
+	# print "c for logistic unweighted data = " , c_categories
+	# model = LogisticRegression(C=c_categories)
+	# model.fit(X_training, y_training)
 
 
+	# y_pred_test = model.predict(X_test)
+	# y_pred_train = model.predict(X_training)
+
+	# print_results(y_test, y_training, y_pred_test, y_pred_train)
+
+	initial_features = ["review_count", "BusinessParking_street", "BusinessParking_lot", "GoodForMeal_dinner", "GoodForMeal_lunch", "GoodForMeal_breakfast"]
+	X_baseline, y_baseline = get_data_from_csv("resturants.csv", initial_features)
+
+	print_baseline_classifiers(X_baseline,y_baseline)
+
+
+	random_forest_trainer(X_baseline, y_baseline)
 
 
 

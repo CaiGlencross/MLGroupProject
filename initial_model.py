@@ -3,6 +3,8 @@ import numpy as np
 import math
 from sklearn.svm import SVC
 from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import GaussianNB
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import KFold
 from sklearn.metrics import f1_score
 from sklearn.metrics import roc_auc_score
@@ -335,7 +337,128 @@ def determine_logreg_hyperparameters(X_training, y_training, plot=False, show=Fa
 		precision_threshold = precision_threshold-.1
 
 
-	return C_vals[best_index]	
+	return C_vals[best_index]
+
+
+def determine_forest_hyperparameters(X_training, y_training, plot=False, show=False, weight = 1):
+	#SVM model
+	C_vals = [10, 20, 50, 75,100, 400, 800, 1000,5000, 7000]
+	c_avg_accs = []
+	c_avg_f1 = []
+	c_avg_auroc = []
+	c_avg_prec = []
+	for c in C_vals:
+		model = RandomForestClassifier(max_depth = c)
+
+		#k fold validation training
+		avg_accs = []
+		avg_f1s = []
+		avg_aurocs = []
+		avg_precs = []
+		avg_percentage = 0
+		kf = KFold(n_splits = 10)
+		for train_index, val_index in kf.split(X_training):
+			X_train, X_val = X_training[train_index], X_training[val_index]
+			y_train, y_val = y_training[train_index], y_training[val_index]
+			model.fit(X_train, y_train)
+			y_pred = model.predict(X_val)
+
+			avg_accs.append(model.score(X_val, y_val))
+			avg_f1s.append(f1_score(y_val, y_pred))
+			avg_aurocs.append(roc_auc_score(y_val, y_pred))
+			avg_precs.append(precision_score(y_val, y_pred))
+
+		# print "average accuracy for %f k-fold validation was %f" % (c, np.mean(avg_accs))
+		c_avg_accs.append(np.mean(avg_accs))
+		c_avg_f1.append(np.mean(avg_f1s))
+		c_avg_auroc.append(np.mean(avg_aurocs))
+		c_avg_prec.append(np.mean(avg_precs))
+		#if show: print "average distribution is %f" % (avg_percentage/float(10))
+	if plot:
+		plt.figure()
+		plt.xlabel("C values")
+		plt.ylabel("metric score")
+		plt.plot(C_vals, c_avg_accs, label="Accuracy")
+		plt.plot(C_vals, c_avg_f1, label="F1_Score")
+		plt.plot(C_vals, c_avg_auroc, label="AUROC")
+		plt.plot(C_vals, c_avg_prec, label="Precision")
+		plt.legend()
+		plt.show()
+	if show:
+		print "optimal C for accuracy %f"  % (C_vals[np.argmax(c_avg_accs)])
+		print "optimal C for f1 score %f"  % (C_vals[np.argmax(c_avg_f1)])
+		print "optimal C for Auroc %f"     % (C_vals[np.argmax(c_avg_auroc)])
+		print "optimal C for precision %f" % (C_vals[np.argmax(c_avg_prec)])
+
+	# need to pick the best f1_score, within some threshold of precision
+
+	precision_threshold = .6 #given by prof Wu
+	best_index = -1
+	while best_index == -1:
+		max_f1 = 0
+		for i in range(len(c_avg_prec)):
+			if c_avg_prec[i] >= precision_threshold and c_avg_f1[i] > max_f1:
+				max_f1 = c_avg_f1[i]
+				best_index = i
+
+
+		precision_threshold = precision_threshold-.1
+
+
+	return C_vals[best_index]
+
+
+
+
+
+def print_baseline_classifiers(X, y):
+
+	X_training, y_training, X_test, y_test = partition_data(X,y)
+
+	#majority classifier:
+
+	classes = np.unique(y)
+
+	max_count = 0
+	majority = -1
+
+	for ass in classes:
+		count = np.count_nonzero(y == ass)
+		if count > max_count:
+			max_count = count
+			majority = ass
+
+
+	y_pred = np.repeat(majority, y.size)
+
+	print "Results for the Majority Classifier"
+
+	print_baseline_results(y, y_pred)
+
+
+	#Naive Bayes
+
+	X_training, y_training, X_test, y_test = partition_data(X,y)
+	clf = GaussianNB()
+	clf.fit(X_training, y_training)
+	y_pred_train = clf.predict(X_training)
+	y_pred_test = clf.predict(X_test)
+
+	print "Results for the Gaussian Nave Bayesian"
+
+	print_results(y_test, y_training, y_pred_test, y_pred_train)
+
+
+
+
+
+
+def print_baseline_results(y_true_test, y_pred_test):
+	print "test accuracy for model was %f" 		% 	(accuracy_score(y_true_test, y_pred_test))
+	print "test f1 score for model was %f" 		% 	(f1_score(y_true_test, y_pred_test))
+	print "test auroc score for model was %f" 	% 	(roc_auc_score(y_true_test, y_pred_test))
+	print "test precision for model was %f" 	% 	(precision_score(y_true_test, y_pred_test))
+	print "\n"	
 
 
 def print_results(y_true_test, y_true_train, y_pred_test, y_pred_train):
@@ -491,6 +614,9 @@ def main():
 	y_pred_train = model.predict(X_training)
 
 	print_results(y_test, y_training, y_pred_test, y_pred_train)
+
+
+	print_baseline_classifiers(X,y)
 
 
 	 
