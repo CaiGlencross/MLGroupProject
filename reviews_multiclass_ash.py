@@ -77,7 +77,7 @@ X_test = tfidf.transform(X_test).toarray()
 
 # higher C --> less regularization (working better)
 #clf_logReg_multi = LogisticRegression(C=200000000, multi_class='ovr')
-clf_logReg_multi = LogisticRegression(C=8.5, multi_class='ovr')
+clf_logReg_multi = LogisticRegression(C=2.5, multi_class='ovr')
 
 # learn the model
 clf_logReg_multi.fit(X_train, y_train)
@@ -96,7 +96,7 @@ print 'test data: '
 print confusion_matrix(y_test, y_pred_test)
 
 
-clf_svm_multi = OneVsRestClassifier(SVC(kernel='rbf', C=1000, gamma=0.01))
+clf_svm_multi = OneVsRestClassifier(SVC(kernel='rbf', C=6, gamma=0.08))
 
 # higher C worked better than 1000
 # clf_svm_multi = OneVsRestClassifier(SVC(kernel='rbf', C=5000, gamma=0.05))
