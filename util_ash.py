@@ -3,6 +3,9 @@ from string import punctuation
 # numpy libraries
 import numpy as np
 
+#pandas
+import pandas as pd
+
 # matplotlib libraries
 import matplotlib as mpl
 mpl.use('TkAgg')
@@ -358,6 +361,13 @@ def printScores(y_true, y_pred, model, train=False):
         print "test AUROC for %s was %f"         %   (model, performance(y_true, y_pred,'auroc'))
 
 
+def sort_coef_tocsv(feature_names, coefs_, filename):
+    index = coefs_.argsort()
+    sorted_coefs = coefs_[:,index].flatten()
+    feature_sorted = feature_names[index]
+    output_feature = feature_sorted.flatten()
+    sorted_features_df = pd.DataFrame({'feature_names': output_feature, "coef": sorted_coefs})
+    sorted_features_df.to_csv(filename)
 
 
 ################################################################################

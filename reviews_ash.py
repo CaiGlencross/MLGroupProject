@@ -61,6 +61,7 @@ X_train, X_test, y_train, y_test = train_test_split(cleaned_df['review'],y, shuf
 tfidf = TfidfVectorizer(strip_accents='ascii', stop_words='english')
 
 tfidf.fit(X_train)
+feature_names = np.array(tfidf.get_feature_names())
 
 X_train = tfidf.transform(X_train).toarray()
 X_test = tfidf.transform(X_test).toarray()
@@ -73,8 +74,6 @@ print 'number of training restaurants (examples): ', n
 print 'number of testing restaurants (examples): ', n2
 print 'number of features from tfidf train: ', d
 print 'number of features from tfidf test: ', d2
-
-
 
 
 # can also use stratified split with 1 fold
@@ -175,6 +174,7 @@ result = clf_logReg.fit(X_train, y_train)
 y_pred_train = clf_logReg.predict(X_train)
 y_pred_test = clf_logReg.predict(X_test)
 
+sort_coef_tocsv(feature_names, clf_logReg.coef_, "sorted_clf_features_C2_5.csv")
 
 printScores(y_train, y_pred_train, 'Logistic Regression for precision', train= True)
 print "\t"
@@ -200,8 +200,10 @@ confusion_matrix = confusion_matrix(y_test, y_pred_test2)
 print(confusion_matrix)
 
 
-################################################################
+sort_coef_tocsv(feature_names, clf_logReg2.coef_, "sorted_clf_features_C_0_5.csv")
 
+################################################################
+"""
 # Decision Tree
 
 print 'Using DecisionTreeClassifier...'
@@ -293,7 +295,7 @@ printScores(y_test, y_pred_test, 'RandomForestClassifier')
 
 confusion_matrix4 = confusion_matrix(y_test, y_pred_test)
 print(confusion_matrix4)
-
+"""
 
 
 
