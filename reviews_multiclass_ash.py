@@ -88,6 +88,10 @@ y_pred_train = clf_logReg_multi.predict(X_train)
 print "Multinomial Logistic regression Train Accuracy : ", metrics.accuracy_score(y_train, y_pred_train)
 print "Multinomial Logistic regression Test Accuracy : ", metrics.accuracy_score(y_test, y_pred_test)
 
+print "f1 scores: "
+print 
+
+
 #confusion matrix
 print 'train data: '
 print confusion_matrix(y_train, y_pred_train)
