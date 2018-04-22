@@ -185,7 +185,7 @@ def main():
 
 
     # cleaning and merging the data for preprocessing
-    df = pd.read_csv("../data/yelp-dataset/categorized_data.csv")
+    df = pd.read_csv("../yelp-dataset/categorized_data.csv")
 
 
     df['stars'] = df['stars'].apply(lambda u: 1 if u >= 4.5 else -1)
@@ -204,8 +204,14 @@ def main():
 
     index, category_names_ig = summary_finder(X,y,feature_names, N_CATEGORIES)
     print(index.shape)
-    print(index)
+    print(category_names_ig)
 
+
+    ig = calc_information_gain(X,y)
+    df_result = pd.DataFrame({'feature': feature_names, 'ig': ig})
+    df_result = df_result.sort_values(by=["ig"], ascending=False)
+    df_result.to_csv("category_infogain.csv")
+ 
 
 if __name__ == '__main__':
     main()
