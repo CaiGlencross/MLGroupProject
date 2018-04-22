@@ -218,7 +218,7 @@ def partition_data(X, y, training_portion = .8):
 
 def determine_svm_hyperparameters(X_training, y_training, plot=False, show=False, weight = 1):
 	#SVM model
-	C_vals = [.001, .01, .1, .2,.3, 1.0, 1.5, 2.0, 2.5, 10, 20, 40, 60, 80, 100]
+	C_vals = [.001, .01, .1, 1.0, 1.5, 2.0, 2.5, 10, 20, 40, 60, 80, 100]
 	c_avg_accs = []
 	c_avg_f1 = []
 	c_avg_auroc = []
@@ -273,7 +273,7 @@ def determine_svm_hyperparameters(X_training, y_training, plot=False, show=False
 	while best_index == -1:
 		max_f1 = 0
 		for i in range(len(c_avg_prec)):
-			if c_avg_prec[i] >= precision_threshold and c_avg_f1[i] > max_f1:
+			if c_avg_prec[i] >= precision_threshold and c_avg_f1[i] >= max_f1:
 				max_f1 = c_avg_f1[i]
 				best_index = i
 
@@ -495,59 +495,60 @@ def print_baseline_classifiers(X_training, y_training, X_test, y_test, plot = Fa
 
 
 	#Dummy Classifier
-	clf = DummyClassifier()
-	clf.fit(X_training, y_training)
-	y_pred_train = clf.predict(X_training)
-	y_pred_test = clf.predict(X_test)
+	# clf = DummyClassifier()
+	# clf.fit(X_training, y_training)
+	# y_pred_train = clf.predict(X_training)
+	# y_pred_test = clf.predict(X_test)
 
-	print "\nResults for the Dummy Classifier\n"
-
-
-	print_results(y_test, y_training, y_pred_test, y_pred_train)
+	# print "\nResults for the Dummy Classifier\n"
 
 
-	train_acc, train_f1, train_prec = get_train_results(y_test, y_training, y_pred_test, y_pred_train)
-	test_acc, test_f1, test_prec = get_test_results(y_test, y_training, y_pred_test, y_pred_train)
+	# print_results(y_test, y_training, y_pred_test, y_pred_train)
 
-	train_f1_scores.append(train_f1)
-	train_acc_scores.append(train_acc)
-	train_prec_scores.append(train_prec)
 
-	test_f1_scores.append(test_f1)
-	test_acc_scores.append(test_acc)
-	test_prec_scores.append(test_prec)
+	# train_acc, train_f1, train_prec = get_train_results(y_test, y_training, y_pred_test, y_pred_train)
+	# test_acc, test_f1, test_prec = get_test_results(y_test, y_training, y_pred_test, y_pred_train)
+
+	# train_f1_scores.append(train_f1)
+	# train_acc_scores.append(train_acc)
+	# train_prec_scores.append(train_prec)
+
+	# test_f1_scores.append(test_f1)
+	# test_acc_scores.append(test_acc)
+	# test_prec_scores.append(test_prec)
 
 
 
 	#Naive Bayes
 
 	
-	clf = GaussianNB()
-	clf.fit(X_training, y_training)
-	y_pred_train = clf.predict(X_training)
-	y_pred_test = clf.predict(X_test)
+	# clf = GaussianNB()
+	# clf.fit(X_training, y_training)
+	# y_pred_train = clf.predict(X_training)
+	# y_pred_test = clf.predict(X_test)
 
-	print "\nResults for the Gaussian Nave Bayesian\n"
+	# print "\nResults for the Gaussian Nave Bayesian\n"
 
-	print_results(y_test, y_training, y_pred_test, y_pred_train)
+	# print_results(y_test, y_training, y_pred_test, y_pred_train)
 
 
-	train_acc, train_f1, train_prec = get_train_results(y_test, y_training, y_pred_test, y_pred_train)
-	test_acc, test_f1, test_prec = get_test_results(y_test, y_training, y_pred_test, y_pred_train)
+	# train_acc, train_f1, train_prec = get_train_results(y_test, y_training, y_pred_test, y_pred_train)
+	# test_acc, test_f1, test_prec = get_test_results(y_test, y_training, y_pred_test, y_pred_train)
 
-	train_f1_scores.append(train_f1)
-	train_acc_scores.append(train_acc)
-	train_prec_scores.append(train_prec)
+	# train_f1_scores.append(train_f1)
+	# train_acc_scores.append(train_acc)
+	# train_prec_scores.append(train_prec)
 
-	test_f1_scores.append(test_f1)
-	test_acc_scores.append(test_acc)
-	test_prec_scores.append(test_prec)
+	# test_f1_scores.append(test_f1)
+	# test_acc_scores.append(test_acc)
+	# test_prec_scores.append(test_prec)
 
 
 	if plot:
 		fig, ax = plt.subplots()
 		ind = np.arange(len(test_acc_scores))
 		width = 0.1
+
 		p1 = ax.bar(ind, test_acc_scores, width, color = "maroon", label = "test accuracy")
 
 		p2 = ax.bar(ind+width, test_f1_scores, width,  color ="orange", label = "test f1 score")
@@ -641,7 +642,7 @@ def main():
 	print "\n\n\nResults for basic model"
 	initial_features = ["review_count", "BusinessParking_street", "BusinessParking_lot", "GoodForMeal_dinner", "GoodForMeal_lunch", "GoodForMeal_breakfast"]
 
-	X, y = get_data_from_csv("resturants.csv", initial_features , threshold = 4.0)
+	X, y = get_data_from_csv("merged_NV_restaurant.csv", initial_features , threshold = 4.5)
 	#print X 
 
 
@@ -674,41 +675,41 @@ def main():
 
 
 	#normalized model
-	print "\n\n\nResults for normalized model"
-	X_norm, y_norm = get_norm_data_from_csv("resturants.csv", initial_features , threshold = 4.0)
-	#print X_norm
+	# print "\n\n\nResults for normalized model"
+	# X_norm, y_norm = get_norm_data_from_csv("merged_NV_restaurant.csv", initial_features , threshold = 4.0)
+	# #print X_norm
 
-	X_training, y_training, X_test, y_test = partition_data(X_norm,y_norm)
+	# X_training, y_training, X_test, y_test = partition_data(X_norm,y_norm)
 
-	c = determine_svm_hyperparameters(X_training, y_training)
-	print "c chosen was %f" % (c)
+	# c = determine_svm_hyperparameters(X_training, y_training)
+	# print "c chosen was %f" % (c)
 
-	model = SVC(C=c, kernel = "rbf")
-	model.fit(X_training, y_training)
+	# model = SVC(C=c, kernel = "rbf")
+	# model.fit(X_training, y_training)
 	
 
-	y_pred_test = model.predict(X_test)
-	y_pred_train = model.predict(X_training)
+	# y_pred_test = model.predict(X_test)
+	# y_pred_train = model.predict(X_training)
 
-	print_results(y_test, y_training, y_pred_test, y_pred_train)
+	# print_results(y_test, y_training, y_pred_test, y_pred_train)
 
-	train_acc, train_f1, train_prec = get_train_results(y_test, y_training, y_pred_test, y_pred_train)
-	test_acc, test_f1, test_prec = get_test_results(y_test, y_training, y_pred_test, y_pred_train)
+	# train_acc, train_f1, train_prec = get_train_results(y_test, y_training, y_pred_test, y_pred_train)
+	# test_acc, test_f1, test_prec = get_test_results(y_test, y_training, y_pred_test, y_pred_train)
 
-	train_f1_scores.append(train_f1)
-	train_acc_scores.append(train_acc)
-	train_prec_scores.append(train_prec)
+	# train_f1_scores.append(train_f1)
+	# train_acc_scores.append(train_acc)
+	# train_prec_scores.append(train_prec)
 
-	test_f1_scores.append(test_f1)
-	test_acc_scores.append(test_acc)
-	test_prec_scores.append(test_prec)
+	# test_f1_scores.append(test_f1)
+	# test_acc_scores.append(test_acc)
+	# test_prec_scores.append(test_prec)
 
 
 
 
 	#partition num reviews at 363
 	print "\n\n\nResults for cutoff reviews"
-	X_cutoff, y_cutoff = get_data_with_cutoff("resturants.csv", initial_features , threshold = 4.0)
+	X_cutoff, y_cutoff = get_data_with_cutoff("merged_NV_restaurant.csv", initial_features , threshold = 4.5)
 	#print X_cutoff
 	X_training, y_training, X_test, y_test = partition_data(X_cutoff,y_cutoff)
 
@@ -743,7 +744,7 @@ def main():
 	print "\n\n\nResults for small model"
 	review_features = ["BusinessParking_street", "BusinessParking_lot", "GoodForMeal_dinner", "GoodForMeal_lunch", "GoodForMeal_breakfast"]
 
-	X_small, y_small = get_small_reviews_data("resturants.csv", review_features , threshold = 4.0)
+	X_small, y_small = get_small_reviews_data("merged_NV_restaurant.csv", review_features , threshold = 4.5)
 
 	n, d = X_small.shape
 	print "num small samples: %d" % (n)
@@ -779,7 +780,7 @@ def main():
 	print "\n\n\nResults for large model"
 	review_features = ["BusinessParking_street", "BusinessParking_lot", "GoodForMeal_dinner", "GoodForMeal_lunch", "GoodForMeal_breakfast"]
 
-	X_large, y_large = get_large_reviews_data("resturants.csv", review_features , threshold = 4.0)
+	X_large, y_large = get_large_reviews_data("merged_NV_restaurant.csv", review_features , threshold = 4.5)
 
 	n, d = X_large.shape
 	print "num large samples: %d" % (n)
@@ -813,7 +814,7 @@ def main():
 	print "\n\n\nResults for Model with no review count"
 	second_features = ["BusinessParking_street", "BusinessParking_lot", "GoodForMeal_dinner", "GoodForMeal_lunch", "GoodForMeal_breakfast"]
 
-	X, y = get_data_from_csv("resturants.csv", second_features, threshold = 4.0)
+	X, y = get_data_from_csv("merged_NV_restaurant.csv", second_features, threshold = 4.5)
 
 
 	X_training, y_training, X_test, y_test = partition_data(X,y)
@@ -850,7 +851,7 @@ def main():
 	#updated meta-data model.
 	print "\n Results for most updated meta model\n"
 
-	X, y = get_large_reviews_data("merged_NV_restaurant.csv", review_features, threshold = 4.0)
+	X, y = get_large_reviews_data("merged_NV_restaurant.csv", review_features, threshold = 4.5)
 
 	X_training, y_training, X_test, y_test = partition_data(X,y)
 
@@ -887,21 +888,24 @@ def main():
 		fig, ax = plt.subplots()
 		ind = np.arange(len(test_acc_scores))
 		width = 0.1
-		p1 = ax.bar(ind, test_acc_scores, width, color = "maroon", label = "test accuracy")
 
-		p2 = ax.bar(ind+width, test_f1_scores, width,  color ="orange", label = "test f1 score")
+		p1 = ax.bar(ind, train_acc_scores, width,alpha = 0.5, color = "maroon", label = "train accuracy")
 
-		p3 = ax.bar(ind+2*width, test_prec_scores, width,  color = "green",label = "test precision")
+		p2 = ax.bar(ind+width, train_f1_scores, width,  alpha = 0.5, color ="orange", label = "train f1 score")
 
-		p1 = ax.bar(ind+3*width, train_acc_scores, width,alpha = 0.5, color = "maroon", label = "train accuracy")
+		p3 = ax.bar(ind+2*width, train_prec_scores, width, alpha = 0.5, color = "green",label = "train precision")
 
-		p2 = ax.bar(ind+4*width, train_f1_scores, width,  alpha = 0.5, color ="orange", label = "train f1 score")
+		p1 = ax.bar(ind+3*width, test_acc_scores, width, color = "maroon", label = "test accuracy")
 
-		p3 = ax.bar(ind+5*width, train_prec_scores, width, alpha = 0.5, color = "green",label = "train precision")
+		p2 = ax.bar(ind+4*width, test_f1_scores, width,  color ="orange", label = "test f1 score")
+
+		p3 = ax.bar(ind+5*width, test_prec_scores, width,  color = "green",label = "test precision")
+
+
 
 		ax.set_title("MetaData Model Results")
 		ax.set_xticks((ind + 2.5*width) )
-		ax.set_xticklabels(('Basic', 'Normalized', 'Cutoff', 'Small', 'Large', 'No Count', 'Updated'))
+		ax.set_xticklabels(('Basic', 'Cutoff', 'Small', 'Large', 'No Count', 'Updated'))
 
 		ax.legend()
 

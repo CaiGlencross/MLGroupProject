@@ -177,7 +177,7 @@ def main():
 
 	# print_results(y_test, y_training, y_pred_test, y_pred_train)
 
-	X_train, y_train, X_test, y_test = get_tfidf_train_test("star_results.csv", threshold = 4.0)
+	X_train, y_train, X_test, y_test = get_tfidf_train_test("star_results.csv", threshold = 4.5)
 
 	print_baseline_classifiers(X_train, y_train, X_test, y_test, plot = True)
 
