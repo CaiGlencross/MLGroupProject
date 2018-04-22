@@ -122,6 +122,8 @@ def get_tfidf_train_test(csv_filename, threshold=4.0):
 
 
 
+
+
 def main():
 	# X, y = read_in_category_data("merged_NV_restaurant.csv")
 
@@ -175,9 +177,9 @@ def main():
 
 	# print_results(y_test, y_training, y_pred_test, y_pred_train)
 
-	X_train, y_train, X_test, y_test = get_tfidf_train_test("star_results.csv", threshold = 4.0)
+	X_train, y_train, X_test, y_test = get_tfidf_train_test("star_results.csv", threshold = 4.5)
 
-	print_baseline_classifiers(X_train, y_train, X_test, y_test)
+	print_baseline_classifiers(X_train, y_train, X_test, y_test, plot = True)
 
 
 	#random_forest_trainer(X_baseline, y_baseline)
