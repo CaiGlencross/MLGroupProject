@@ -3,6 +3,9 @@ from string import punctuation
 # numpy libraries
 import numpy as np
 
+#pandas
+import pandas as pd
+
 # matplotlib libraries
 import matplotlib as mpl
 mpl.use('TkAgg')
@@ -127,7 +130,7 @@ def select_param_logReg(X, y, kf, metric="accuracy"):
 
     print 'Logistic Regression Hyperparameter Selection based on ' + str(metric) + ':'
 
-    C_vals = [5,5.5,6,6.5, 7,7.5, 8, 8.5 ,9, 9.5, 10]
+    C_vals = [0.25,0.5,1,1.25, 1.5,2,2.25,2.5,3,4,5]
 
     score_array = np.zeros(len(C_vals))
 
@@ -143,7 +146,7 @@ def select_param_logReg(X, y, kf, metric="accuracy"):
     return C_vals[i]
 
 def determine_logreg_hyperparameters(X_training, y_training, plot=False, show=False, weight = 1):
-    C_vals = [7,7.5, 8, 8.5 ,9, 9.5, 10]
+    C_vals = [0.1,0.2,0.25,0.5,1,1.25, 1.5,2,2.25,2.5]
     c_avg_accs = []
     c_avg_f1 = []
     c_avg_auroc = []
@@ -216,8 +219,8 @@ def determine_logreg_hyperparameters(X_training, y_training, plot=False, show=Fa
 
 def determine_DT_hyperparameters(X_training, y_training, plot=False, show=False):
     print 'starting to test for max_depth parameter...'
-    #depth_vals = [1,2,10,20, 50,100,200, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000,8000, 10000]
-    depth_vals = [10,20,30,40,50,60,70]
+    depth_vals = [0.5,0.75, 1,1.5, 2,2.5, 3,3.5,4,5,6,7,8,9,10]
+    #depth_vals = [10,20,30,40,50,60,70]
     d_avg_accs = []
     d_avg_f1 = []
     d_avg_auroc = []
@@ -234,7 +237,7 @@ def determine_DT_hyperparameters(X_training, y_training, plot=False, show=False)
         avg_precs = []
         avg_recalls = []
         avg_percentage = 0
-        kf = KFold(n_splits = 2)
+        kf = KFold(n_splits = 4)
         for train_index, val_index in kf.split(X_training):
             X_train, X_val = X_training[train_index], X_training[val_index]
             y_train, y_val = y_training[train_index], y_training[val_index]
@@ -358,6 +361,13 @@ def printScores(y_true, y_pred, model, train=False):
         print "test AUROC for %s was %f"         %   (model, performance(y_true, y_pred,'auroc'))
 
 
+def sort_coef_tocsv(feature_names, coefs_, filename):
+    index = coefs_.argsort()
+    sorted_coefs = coefs_[:,index].flatten()
+    feature_sorted = feature_names[index]
+    output_feature = feature_sorted.flatten()
+    sorted_features_df = pd.DataFrame({'feature_names': output_feature, "coef": sorted_coefs})
+    sorted_features_df.to_csv(filename)
 
 
 ################################################################################

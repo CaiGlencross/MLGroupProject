@@ -4,3 +4,6 @@
 *.pyc
 #ignore .DS_Store
 .DS_Store
+
+#ignore my weird files
+*.ipynb
