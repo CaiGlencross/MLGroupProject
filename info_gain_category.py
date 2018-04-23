@@ -11,7 +11,8 @@
 import numpy as np
 import pandas as pd
 from sklearn.metrics import f1_score
-
+import matplotlib as mpl
+mpl.use('TkAgg')
 import matplotlib.pyplot as plt
 
 from sklearn.feature_extraction.text import CountVectorizer
@@ -185,7 +186,7 @@ def main():
 
 
     # cleaning and merging the data for preprocessing
-    df = pd.read_csv("../yelp-dataset/categorized_data.csv")
+    df = pd.read_csv("categorized_data.csv")
 
 
     df['stars'] = df['stars'].apply(lambda u: 1 if u >= 4.5 else -1)
